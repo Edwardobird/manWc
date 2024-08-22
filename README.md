@@ -15,10 +15,10 @@ git clone https://github.com/Edwardobird/manWc.git
 ```
 
 ### Step 2: Compile the tool
-Navigate to the cloned directory and compile the C++ source code:
+Navigate to the cloned directory and compile the C++ source code (if you are not there already):
 ```bash
 cd manWc
-g++ -o manWc manWc.cpp
+g++ -o manWc main.cpp
 ```
 
 ### Step 3: Run the tool
