@@ -2,80 +2,100 @@
 #include <fstream>
 #include <string>
 
-void countLines(std::ifstream &file) {
+size_t countLines(std::istream &input) {
     std::string line;
     size_t lines = 0;
 
-    //This incrementally gets lines
-    while (std::getline(file, line)) {
+    // This incrementally gets lines
+    while (std::getline(input, line)) {
         ++lines;
     }
-
-    std::cout << "Lines: " << lines << std::endl;
+    return lines;
 }
 
-void countWords(std::ifstream &file) {
+size_t countWords(std::istream &input) {
     std::string line;
     size_t words = 0;
 
-    while (std::getline(file, line)) {
+    while (std::getline(input, line)) {
         bool inWord = false;
-        //Iterate through the line
+        // Iterate through the line
         for (char ch : line) {
-            //If is a white space and it is not in a word, we add the word count (omits whitespace cluster)
+            // If it's a white space and we are in a word, we add to the word count (omits whitespace clusters)
             if (isspace(ch)) {
                 if (inWord) {
                     ++words;
                     inWord = false;
                 }
             } else {
-                //We are in a new word
+                // We are in a new word
                 inWord = true;
             }
         }
-        if (inWord) ++words; //In the end we have an uncounted word
+        if (inWord) ++words; // Count the last word if not followed by space
     }
-
-    std::cout << "Words: " << words << std::endl;
+    return words;
 }
 
-void countCharacters(std::ifstream &file) {
-    std::string line;
+size_t countCharacters(std::istream &input) {
+    char ch;
     size_t characters = 0;
 
-    while (std::getline(file, line)) {
-        characters += line.length() + 1; // +1 for the newline character
+    while (input.get(ch)) {
+        ++characters;
     }
-
-    std::cout << "Characters: " << characters << std::endl;
+    return characters;
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <option> <filename>" << std::endl;
-        std::cerr << "Options: -l (lines), -w (words), -c (characters)" << std::endl;
+    if (argc != 3 && argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <option> [filename]" << std::endl;
+        std::cerr << "Options: -l (lines), -w (words), -m (characters)" << std::endl;
         return 1;
     }
 
-    std::string option = argv[1];
-    std::ifstream file(argv[2]);
+    std::string option;
+    std::string filename;
+    bool useStdin = (argc == 2);
 
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open the file " << argv[2] << std::endl;
-        return 1;
+    if (argc == 3) {
+        option = argv[1];
+        filename = argv[2]; // Store the filename from the argument
+    } else if (argc == 2) {
+        option = argv[1]; // Here the option is the only argument, no filename provided
+    }
+
+    std::istream *input;
+    std::ifstream file;
+
+    if (useStdin) {
+        input = &std::cin;  // Use standard input
+    } else {
+        file.open(filename);
+        if (!file.is_open()) {
+            std::cerr << "Error: Could not open the file " << filename << std::endl;
+            return 1;
+        }
+        input = &file;
     }
 
     if (option == "-l") {
-        countLines(file);
+        size_t lines = countLines(*input);
+        std::cout << lines << std::endl;
     } else if (option == "-w") {
-        countWords(file);
-    } else if (option == "-c") {
-        countCharacters(file);
+        size_t words = countWords(*input);
+        std::cout << words << std::endl;
+    } else if (option == "-m") {
+        size_t characters = countCharacters(*input);
+        std::cout << characters << std::endl;
     } else {
-        std::cerr << "Invalid option. Use -l for lines, -w for words, or -c for characters." << std::endl;
+        std::cerr << "Invalid option. Use -l for lines, -w for words, or -m for characters." << std::endl;
         return 1;
     }
 
-    file.close();
+    if (!useStdin) {
+        file.close();
+    }
+
     return 0;
 }
